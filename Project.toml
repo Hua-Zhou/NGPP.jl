@@ -1,0 +1,12 @@
+name = "NGPP"
+uuid = "569a7d96-6338-5656-98ae-26a1d9389ece"
+keywords = ["nearest neighbor Gaussian process"]
+author = ["Lu Zhang", "Sudipto Banerjee", "Hua Zhou <huazhou@ucla.edu>"]
+version = "0.0.0"
+
+[deps]
+Distances = "b4f34e82-e78d-54a5-968a-f98e89d6e8f7"
+IterativeSolvers = "42fd0dbc-a981-5370-80f2-aaf504508153"
+LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
+LinearMaps = "7a12625a-238d-50fd-b39a-03d52299707e"
+SpecialFunctions = "276daf66-3868-5448-9aa4-cd146d93841b"
