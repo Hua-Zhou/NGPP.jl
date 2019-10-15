@@ -19,7 +19,7 @@ function matern(d::Real, ν::Real=1//2, ϕ::Real=1, σ²::Real=1)
         l = (1 - ν) * log(2) + ν * log(r) - (logabsgamma(ν))[1]
         c = exp(l) * besselk(ν, r)
     end
-    return σ² * c
+    σ² * c
 end
 
 function matern!(D::AbstractMatrix{<:Real}, ν::Real=1//2, ϕ::Real=1, σ²::Real=1; uplo::Char='U')

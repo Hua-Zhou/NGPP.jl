@@ -2,9 +2,10 @@ __precompile__()
 
 module NGPP
 
-using Distances, LinearAlgebra, LinearMaps, SpecialFunctions
+using Distances, LinearAlgebra, SparseArrays, SpecialFunctions
 import Base: length, size
 import LinearAlgebra: BlasReal, copytri!, mul!
+import SparseArrays: sparse
 
 export
     # types
@@ -66,7 +67,7 @@ struct NNGP{T<:AbstractFloat}
     "`A`: `A[i]` is `m`-by-`n` matrix"
     A::Vector{Vector{Vector{T}}}
     "`D`: `D[i]` is `n` vector"
-    D::Vector{Vector{T}}
+    D⁻½::Vector{Vector{T}}
     "`Znr`: `Z[i]` is `n`-by-`r` matrix"
     Znr::Vector{Matrix{T}}
     "`Zrr`: `Z[i]` is `r`-by-`r` matrix"
@@ -107,7 +108,7 @@ function NNGP(
     ϕgp    = Vector{T}(undef, p̃)
     ϕnngp  = Vector{T}(undef, p̃)
     A      = [[Vector{T}(undef, length(nnlist[loc])) for loc in 1:n] for _ in 1:p̃]
-    D      = [Vector{T}(undef, n) for _ in 1:p̃]
+    D⁻½    = [Vector{T}(undef, n) for _ in 1:p̃]
     Znr    = [Matrix{T}(undef, n, r) for _ in 1:p̃]
     Zrr    = [Matrix{T}(undef, r, r) for _ in 1:p̃]
     Cnn    = Matrix{T}(undef, m + 1, m + 1)
@@ -116,7 +117,7 @@ function NNGP(
     return NNGP{T}(m, n, p, p̃, r,
         X, X̃, y, coord, nnlist, nndist, Dgpknot, Dgptall,
         β, δ²gp, δ²nngp, ϕgp, ϕnngp,
-        A, D, Znr, Zrr, Cnn, Cknot, Ctall)
+        A, D⁻½, Znr, Zrr, Cnn, Cknot, Ctall)
 end
 
 """
@@ -128,7 +129,10 @@ function update_AD!(nngp::NNGP)
     @inbounds for re in 1:nngp.p̃
         for loc in 1:nngp.n
             nnn = length(nngp.nnlist[loc]) # number of nearest neighbors
-            nnn == 0 && continue
+            if nnn == 0
+                nngp.D⁻½[re][loc] = 1
+                continue
+            end
             # evaluate Matern kernel at upper triangular part of C
             for j in 1:nnn+1, i in 1:j
                 nngp.Cnn[i, j] = matern(nngp.nndist[loc][i, j], 1//2, nngp.ϕnngp[re])
@@ -138,7 +142,7 @@ function update_AD!(nngp::NNGP)
             for i in 1:nnn
                 nngp.A[re][loc][i] = nngp.Cnn[i, nnn+1]
             end
-            nngp.D[re][loc] = nngp.Cnn[nnn+1, nnn+1]
+            nngp.D⁻½[re][loc] = inv(sqrt(nngp.Cnn[nnn+1, nnn+1]))
         end
     end
     nothing
@@ -168,5 +172,6 @@ end
 
 include("matern.jl")
 include("xstar.jl")
+include("sparse.jl")
 
 end # module
