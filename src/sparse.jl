@@ -3,15 +3,17 @@
 
 Generate a `SparseMatrixCSC{T, TI}` for `xstar`.
 """
-function sparse(xstar::NNGPXstar, T=Base.eltype(xstar))
+function sparse(
+    xstar::NNGPXstar, 
+    T::Type{<:AbstractFloat}=Base.eltype(xstar), 
+    TI::Type{<:Integer}=Int)
     n, p, p̃, r   = xstar.nngp.n, xstar.nngp.p, xstar.nngp.p̃, xstar.nngp.r
     X, X̃, y      = xstar.nngp.X, xstar.nngp.X̃, xstar.nngp.y
     Znr, Zrr     = xstar.nngp.Znr, xstar.nngp.Zrr
     A, D⁻½       = xstar.nngp.A, xstar.nngp.D⁻½
     δ²gp, δ²nngp = xstar.nngp.δ²gp, xstar.nngp.δ²nngp
     nnlist       = xstar.nngp.nnlist
-    tilist = [Int8, Int16, Int32, Int64, Int128]
-    TI = tilist[findfirst(t -> typemax(t) > n, tilist)]
+    typemax(TI) < n && error("TI has insufficient capacity for n=$n")
     S = SparseMatrixCSC{T, TI}(spzeros(size(xstar)...))
     S[1:n, 1:p] = X
     Is = [vcat([fill(loc, length(nnlist[loc])) for loc in 1:n]...); 1:n]
