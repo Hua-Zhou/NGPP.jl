@@ -5,5 +5,4 @@ deps/deps.jl
 .DS_Store
 *.jld
 *.RData
-Manifest.toml
 *.mem
